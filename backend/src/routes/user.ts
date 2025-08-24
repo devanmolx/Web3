@@ -1,6 +1,7 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken"
 import prisma from "../utils/prisma.ts";
+import { authMiddleware } from "../middlewares/authMiddleware.ts";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "";
@@ -40,5 +41,10 @@ router.post("/signin", async (req, res) => {
 
     return res.status(200).json({token , status:true});
 });
+
+router.post("/preSignedURL" , authMiddleware , (req,res)=>{
+    // TODO
+
+})
 
 export default router;
