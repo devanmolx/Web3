@@ -2,9 +2,20 @@ import { Router } from "express";
 import jwt from "jsonwebtoken"
 import prisma from "../utils/prisma.ts";
 import { authMiddleware } from "../middlewares/authMiddleware.ts";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "";
+const Bucket = process.env.AWS_BUCKET || "";
+
+const s3 = new S3Client({
+    region:"ap-south-1",
+    credentials:{
+        accessKeyId:process.env.AWS_ACCESS_KEY_ID || "",
+        secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY || ""
+    }
+})
 
 router.post("/signin", async (req, res) => {
    
@@ -42,9 +53,26 @@ router.post("/signin", async (req, res) => {
     return res.status(200).json({token , status:true});
 });
 
-router.post("/preSignedURL" , authMiddleware , (req,res)=>{
-    // TODO
+router.post("/preSignedURL" , authMiddleware , async (req,res)=>{
+    // @ts-ignore
+    const userId = req.userId;
+    const Key = `task/${userId}/${Math.random()}/image.jpg`
 
+    try {
+        
+        const command = new PutObjectCommand({
+            Bucket,
+            Key
+        })
+        
+        const url = await getSignedUrl(s3 , command , {expiresIn: 60*10});
+
+        return res.status(200).json({url , key: Key, status: true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error , status:false});   
+    }
 })
 
 export default router;
