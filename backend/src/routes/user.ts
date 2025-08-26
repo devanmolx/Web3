@@ -4,6 +4,7 @@ import prisma from "../utils/prisma.ts";
 import { authMiddleware } from "../middlewares/authMiddleware.ts";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createTaskInput } from "../types.ts";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "";
@@ -72,6 +73,51 @@ router.post("/preSignedURL" , authMiddleware , async (req,res)=>{
     } catch (error) {
         console.log(error);
         return res.status(500).json({error , status:false});   
+    }
+})
+
+router.post("/task" , authMiddleware , (req,res) => {
+
+    // @ts-ignore
+    const userId:number = req.userId;
+
+    const body = req.body;
+    const parsedData = createTaskInput.safeParse(body);
+
+    if(!parsedData.success){
+        return res.status(401).json({error : parsedData.error , status:false})
+    }
+
+    const {title , options , signature , amount} = parsedData.data;
+
+    try {
+        
+        
+        const newTask =  prisma.$transaction(async tx => {
+            
+            const newTask = await tx.task.create({
+                data:{
+                    userId,
+                    title,
+                    amount,
+                    signature,
+                    options:{
+                        create: options.map((option, index) => ({
+                            imageUrl: option.imageUrl,
+                            optionId: index
+                        }))
+                    }
+                }
+            })
+            
+            return newTask;
+        })
+        
+        return res.status(201).json({newTask, status:true});
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error , status:false});  
     }
 })
 
