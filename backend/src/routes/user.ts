@@ -74,7 +74,7 @@ router.post("/preSignedURL", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/task", authMiddleware, (req, res) => {
+router.post("/task", authMiddleware, async (req, res) => {
   // @ts-ignore
   const userId: number = req.userId;
 
@@ -88,8 +88,8 @@ router.post("/task", authMiddleware, (req, res) => {
   const { title, options, signature, amount } = parsedData.data;
 
   try {
-    const newTask = prisma.$transaction(async (tx) => {
-      const newTask = await tx.task.create({
+    const newTask = await prisma.$transaction(async (tx) => {
+      return tx.task.create({
         data: {
           userId,
           title,
@@ -103,11 +103,41 @@ router.post("/task", authMiddleware, (req, res) => {
           },
         },
       });
-
-      return newTask;
     });
 
     return res.status(201).json({ newTask, status: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error, status: false });
+  }
+});
+
+router.get("/task", authMiddleware, async (req, res) => {
+  // @ts-ignore
+  const userId = req.userId;
+  const taskId = req.query.taskId;
+
+  if (!taskId) {
+    return res
+      .status(400)
+      .json({ error: "Please send the task Id", status: false });
+  }
+
+  try {
+    const task = await prisma.task.findFirst({
+      where: {
+        userId: userId,
+        id: Number(taskId),
+      },
+    });
+
+    if (!task) {
+      return res
+        .status(411)
+        .json({ error: "You don't have access to this task", status: false });
+    }
+
+    return res.status(201).json({ task, status: true });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error, status: false });
