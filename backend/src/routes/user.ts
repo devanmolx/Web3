@@ -99,6 +99,9 @@ router.post("/task", authMiddleware, async (req, res) => {
             create: options.map((option, index) => ({
               imageUrl: option.imageUrl,
               optionId: index,
+              optionStat: {
+                create: {},
+              },
             })),
           },
         },
@@ -128,6 +131,13 @@ router.get("/task", authMiddleware, async (req, res) => {
       where: {
         userId: userId,
         id: Number(taskId),
+      },
+      include: {
+        options: {
+          include: {
+            optionStat: true,
+          },
+        },
       },
     });
 
