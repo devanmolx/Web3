@@ -37,14 +37,16 @@ model Balance {
 }
 
 model Task {
-  id        Int      @id @default(autoincrement())
-  title     String
-  signature String   @unique
-  amount    Float
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  options   Option[]
-  done      Boolean  @default(false)
+  id               Int      @id @default(autoincrement())
+  title            String
+  signature        String   @unique
+  amount           Float
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id])
+  options          Option[]
+  done             Boolean  @default(false)
+  maxSubmissions   Int      @default(100)
+  totalSubmissions Int      @default(0)
 }
 
 model Option {
@@ -61,9 +63,12 @@ model Submission {
   id       Int    @id @default(autoincrement())
   workerId Int
   worker   Worker @relation(fields: [workerId], references: [id])
+  taskId   Int
   optionId Int
   option   Option @relation(fields: [optionId], references: [id])
   amount   Float
+
+  @@unique([workerId, taskId])
 }
 
 model OptionStat {

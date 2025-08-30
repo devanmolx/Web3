@@ -10,3 +10,7 @@ export const createTaskInput = z.object({
   signature: z.string(),
   amount: z.float64(),
 });
+
+export const createSubmissionType = z.object({
+  optionId: z.number()
+})
