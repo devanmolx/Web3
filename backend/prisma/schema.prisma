@@ -14,60 +14,61 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id              Int           @id @default(autoincrement())
-  address         String        @unique
-  tasks           Task[]
+model User {
+  id      Int    @id @default(autoincrement())
+  address String @unique
+  tasks   Task[]
 }
 
-model Worker{
-  id              Int           @id @default(autoincrement())
-  address         String        @unique
-  submissions     Submission[]
-  balance         Balance?
+model Worker {
+  id          Int          @id @default(autoincrement())
+  address     String       @unique
+  submissions Submission[]
+  balance     Balance?
 }
 
-model Balance{
-  id              Int           @id @default(autoincrement())
-  balance         Float         @default(0)
-  pendingAmount   Float         @default(0)
-  lockedAmount    Float         @default(0)
-  workerId        Int           @unique
-  worker          Worker        @relation(fields: [workerId] , references: [id] , onDelete: Cascade)
+model Balance {
+  id            Int    @id @default(autoincrement())
+  balance       Float  @default(0)
+  pendingAmount Float  @default(0)
+  lockedAmount  Float  @default(0)
+  workerId      Int    @unique
+  worker        Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
 }
 
-model Task{
-  id              Int           @id @default(autoincrement())
-  title           String
-  signature       String        @unique
-  amount          Float
-  userId          Int
-  user            User          @relation(fields: [userId] , references: [id])
-  options         Option[]
+model Task {
+  id        Int      @id @default(autoincrement())
+  title     String
+  signature String   @unique
+  amount    Float
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  options   Option[]
+  done      Boolean  @default(false)
 }
 
-model Option{
-  id              Int           @id @default(autoincrement())
-  imageUrl        String
-  optionId        Int
-  taskId          Int
-  task            Task          @relation(fields: [taskId], references: [id])
-  submissions     Submission[]
-  optionStat      OptionStat?
+model Option {
+  id          Int          @id @default(autoincrement())
+  imageUrl    String
+  optionId    Int
+  taskId      Int
+  task        Task         @relation(fields: [taskId], references: [id])
+  submissions Submission[]
+  optionStat  OptionStat?
 }
 
-model Submission{
-  id              Int           @id @default(autoincrement())
-  workerId        Int
-  worker          Worker        @relation(fields: [workerId] , references: [id])
-  optionId        Int
-  option          Option        @relation(fields: [optionId] , references: [id])
-  amount          Float
+model Submission {
+  id       Int    @id @default(autoincrement())
+  workerId Int
+  worker   Worker @relation(fields: [workerId], references: [id])
+  optionId Int
+  option   Option @relation(fields: [optionId], references: [id])
+  amount   Float
 }
 
-model OptionStat{
-  id              Int           @id  @default(autoincrement())
-  optionId        Int           @unique
-  clicks          Int           @default(0)
-  option          Option        @relation(fields: [optionId] , references: [id] , onDelete: Cascade)
+model OptionStat {
+  id       Int    @id @default(autoincrement())
+  optionId Int    @unique
+  clicks   Int    @default(0)
+  option   Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
